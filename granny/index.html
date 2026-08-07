@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Villa Zawoja — Booking Calendar (Granny)</title>
+<link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="brand"><span data-i18n="appName">Villa Zawoja</span> <small data-i18n="appTagline">Booking System</small></div>
+  <div class="tabs">
+    <button class="tab active" onclick="showScreen('calendar', this)" data-i18n="tabCalendar">Calendar</button>
+    <button class="tab" onclick="showScreen('summary', this)" data-i18n="tabSummary">Money Summary</button>
+    <button class="tab" onclick="showScreen('prices', this)" data-i18n="tabPrices">Season Prices</button>
+    <button class="tab" onclick="showScreen('guests', this)" data-i18n="tabGuests">Guests</button>
+  </div>
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div class="search-wrap">
+      <div class="search-box">🔍 <input id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search guest surname…" oninput="handleSearch(this.value)"></div>
+      <div class="search-results" id="searchResults" style="display:none;"></div>
+    </div>
+    <div class="sync-bar">
+      <div class="sync-status" id="syncStatus"><span class="sync-dot" id="syncDot"></span><span id="syncStatusText" data-i18n="neverSynced">Not yet synced</span></div>
+      <button class="btn-secondary" id="connectBtn" style="padding:7px 14px; font-size:12.5px;" onclick="connectDrive()" data-i18n="connectDrive">Connect Google Drive</button>
+    </div>
+    <div class="role-badge" data-i18n="grannyViewBadge">Granny · view only</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="screen active" id="screen-calendar">
+    <div id="viewOnlyBanner" class="view-only-banner" data-i18n="viewOnlyBanner"></div>
+    <div class="section-title">
+      <h1 data-i18n="bookingsHeading">Bookings</h1>
+      <div class="year-nav">
+        <button id="prevYearBtn" onclick="changeYear(-1)">‹</button>
+        <span class="year-label" id="yearLabel">2026</span>
+        <button id="nextYearBtn" onclick="changeYear(1)">›</button>
+      </div>
+    </div>
+    <div id="monthGrids"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="swatch" style="background:#fff;"></div><span data-i18n="legendAvailable">Available</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-reserved)"></div><span data-i18n="legendReserved">Reserved, no deposit</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-deposit)"></div><span data-i18n="legendDeposit">Deposit received</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-staying)"></div><span data-i18n="legendStaying">Staying now</span></div>
+      <div class="legend-item"><div class="dash-sample"></div><span data-i18n="legendCheckInOut">Check-in / checkout day</span></div>
+      <div class="legend-item"><div class="swatch" style="background:linear-gradient(135deg,var(--status-staying) 49%,var(--status-reserved) 51%)"></div><span data-i18n="legendTurnover">Same-day turnover</span></div>
+    </div>
+    <div class="hint" id="calendarHint" data-i18n="calendarHintViewOnly"></div>
+  </div>
+
+  <div class="screen" id="screen-summary">
+    <div class="section-title"><h1><span data-i18n="moneySummaryHeading">Money Summary — </span><span id="summaryYearLabel">2026</span></h1></div>
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div class="deposits-section">
+      <div class="section-title">
+        <h1 style="font-size:19px;" data-i18n="depositsHeading">Current Bookings — Deposits &amp; Balances</h1>
+        <p class="note" style="margin:0;" data-i18n="depositsNote">This season only</p>
+      </div>
+      <div id="depositsTableWrap"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-prices">
+    <div class="section-title">
+      <h1><span data-i18n="pricesHeading">Season Prices — </span><span id="priceYearLabel">2026</span></h1>
+      <span style="font-size:13px;color:var(--timber)" id="priceCopyNote"></span>
+    </div>
+    <div id="priceTableWrap"></div>
+  </div>
+
+  <div class="screen" id="screen-guests">
+    <div class="section-title"><h1 data-i18n="guestsHeading">Guests</h1></div>
+    <div class="guest-layout">
+      <div class="guest-list" id="guestList"></div>
+      <div class="profile-card" id="profileCard"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../shared/config.js"></script>
+<script src="../shared/strings.js"></script>
+<script>const CAN_EDIT = false;</script>
+<script src="../shared/app-core.js"></script>
+<script src="granny-app.js"></script>
+</body>
+</html>

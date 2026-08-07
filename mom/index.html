@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Villa Zawoja — Booking System (Mom)</title>
+<link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="brand"><span data-i18n="appName">Villa Zawoja</span> <small data-i18n="appTagline">Booking System</small></div>
+  <div class="tabs">
+    <button class="tab active" onclick="showScreen('calendar', this)" data-i18n="tabCalendar">Calendar</button>
+    <button class="tab" onclick="showScreen('summary', this)" data-i18n="tabSummary">Money Summary</button>
+    <button class="tab" onclick="showScreen('prices', this)" data-i18n="tabPrices">Season Prices</button>
+    <button class="tab" onclick="showScreen('guests', this)" data-i18n="tabGuests">Guests</button>
+  </div>
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div class="search-wrap">
+      <div class="search-box">🔍 <input id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search guest surname…" oninput="handleSearch(this.value)"></div>
+      <div class="search-results" id="searchResults" style="display:none;"></div>
+    </div>
+    <div class="sync-bar">
+      <div class="sync-status" id="syncStatus"><span class="sync-dot" id="syncDot"></span><span id="syncStatusText" data-i18n="notConnected">Not connected — changes are only saved on this computer</span></div>
+      <button class="btn-secondary" id="connectBtn" style="padding:7px 14px; font-size:12.5px;" onclick="connectDrive()" data-i18n="connectDrive">Connect Google Drive</button>
+      <div class="share-row" id="shareRow" style="display:none;">
+        <input type="text" id="shareEmail" data-i18n-placeholder="shareWithPlaceholder" placeholder="granny@example.com">
+        <button class="btn-secondary" style="padding:6px 12px; font-size:12.5px;" onclick="shareWithGranny()" data-i18n="shareWithBtn">Share</button>
+      </div>
+    </div>
+    <div class="role-badge" data-i18n="momEditBadge">Mom · full access</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="screen active" id="screen-calendar">
+    <div id="viewOnlyBanner" class="view-only-banner" style="display:none;" data-i18n="viewOnlyBanner"></div>
+    <div class="section-title">
+      <h1 data-i18n="bookingsHeading">Bookings</h1>
+      <div class="year-nav">
+        <button id="prevYearBtn" onclick="changeYear(-1)">‹</button>
+        <span class="year-label" id="yearLabel">2026</span>
+        <button id="nextYearBtn" onclick="changeYear(1)">›</button>
+      </div>
+    </div>
+    <div id="monthGrids"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="swatch" style="background:#fff;"></div><span data-i18n="legendAvailable">Available</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-reserved)"></div><span data-i18n="legendReserved">Reserved, no deposit</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-deposit)"></div><span data-i18n="legendDeposit">Deposit received</span></div>
+      <div class="legend-item"><div class="swatch" style="background:var(--status-staying)"></div><span data-i18n="legendStaying">Staying now</span></div>
+      <div class="legend-item"><div class="dash-sample"></div><span data-i18n="legendCheckInOut">Check-in / checkout day</span></div>
+      <div class="legend-item"><div class="swatch" style="background:linear-gradient(135deg,var(--status-staying) 49%,var(--status-reserved) 51%)"></div><span data-i18n="legendTurnover">Same-day turnover</span></div>
+    </div>
+    <div class="hint" id="calendarHint" data-i18n="calendarHint"></div>
+  </div>
+
+  <div class="screen" id="screen-summary">
+    <div class="section-title"><h1><span data-i18n="moneySummaryHeading">Money Summary — </span><span id="summaryYearLabel">2026</span></h1></div>
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div class="deposits-section">
+      <div class="section-title">
+        <h1 style="font-size:19px;" data-i18n="depositsHeading">Current Bookings — Deposits &amp; Balances</h1>
+        <p class="note" style="margin:0;" data-i18n="depositsNote">This season only</p>
+      </div>
+      <div id="depositsTableWrap"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-prices">
+    <div class="section-title">
+      <h1><span data-i18n="pricesHeading">Season Prices — </span><span id="priceYearLabel">2026</span></h1>
+      <span style="font-size:13px;color:var(--timber)" id="priceCopyNote"></span>
+    </div>
+    <div id="priceTableWrap"></div>
+    <div style="margin-top:18px;"><button class="btn-primary" id="savePricesBtn" onclick="savePrices()" data-i18n="savePricesBtn">Save prices</button></div>
+  </div>
+
+  <div class="screen" id="screen-guests">
+    <div class="section-title"><h1 data-i18n="guestsHeading">Guests</h1></div>
+    <div class="guest-layout">
+      <div class="guest-list" id="guestList"></div>
+      <div class="profile-card" id="profileCard"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal">
+    <h2 id="modalTitle">New booking</h2>
+    <div class="sub" id="modalSub"></div>
+    <div class="warning-box" id="turnoverWarning" style="display:none;"></div>
+    <div class="error-box" id="errorBox" style="display:none;"></div>
+    <input type="hidden" id="f_unit">
+    <input type="hidden" id="f_editId">
+    <div class="row-2">
+      <div class="field"><label data-i18n="fieldStart">Start date</label><input type="date" id="f_start" onchange="recalcBalance()"></div>
+      <div class="field"><label data-i18n="fieldEnd">End date (checkout day)</label><input type="date" id="f_end" onchange="recalcBalance()"></div>
+    </div>
+    <div class="field"><label data-i18n="fieldSurname">Guest surname</label><input type="text" id="f_surname"></div>
+    <div class="field"><label data-i18n="fieldPhone">Phone number</label><input type="text" id="f_phone"></div>
+    <div class="row-2">
+      <div class="field"><label data-i18n="fieldPrice">Price per night (zł)</label><input type="number" id="f_price" onchange="recalcBalance()"></div>
+      <div class="field"><label data-i18n="fieldDeposit">Deposit / amount paid (zł)</label><input type="number" id="f_deposit" onchange="recalcBalance()"></div>
+    </div>
+    <div class="field"><label data-i18n="fieldNote">Note (optional)</label><textarea rows="2" id="f_note"></textarea></div>
+    <div class="balance-line"><span data-i18n="outstandingBalance">Outstanding balance</span><span id="f_balance">0 zł</span></div>
+    <div class="modal-actions">
+      <div>
+        <button class="btn-danger" id="cancelBookingBtn" style="display:none;" onclick="cancelBooking()" data-i18n="clearBooking">Clear booking</button>
+      </div>
+      <div class="right-group">
+        <button class="btn-secondary" onclick="closeModal()" data-i18n="cancel">Cancel</button>
+        <button class="btn-primary" onclick="saveBooking()" data-i18n="saveBooking">Save booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../shared/config.js"></script>
+<script src="../shared/strings.js"></script>
+<script>const CAN_EDIT = true;</script>
+<script src="../shared/app-core.js"></script>
+<script src="mom-app.js"></script>
+</body>
+</html>
