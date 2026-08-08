@@ -328,6 +328,16 @@ function cancelBooking() {
 
 function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
 
+/* ============================= MONEY SUMMARY (edit) ============================= */
+function markBookingPaid(id) {
+  const b = DB.bookings.find(x => x.id === id);
+  if (!b) return;
+  b.paid = bookingTotal(b);
+  persist();
+  renderAll();
+  showToast(STRINGS.toastMarkedPaid);
+}
+
 /* ============================= GUESTS (edit) ============================= */
 function updateGuestField(name, field, value) {
   if (!DB.guestProfiles[name]) DB.guestProfiles[name] = { transport: '', note: '' };

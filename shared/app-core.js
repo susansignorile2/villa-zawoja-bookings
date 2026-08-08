@@ -429,10 +429,14 @@ function renderSummary() {
     const total = bookingTotal(b);
     const owed = Math.max(0, total - b.paid);
     totalOutstanding += owed;
-    const statusBadge = owed === 0
-      ? `<span class="status-badge paid">${STRINGS.statusPaidInFull}</span>`
-      : `<span class="status-badge due">${STRINGS.statusBalanceDue}</span>`;
-    html += `<tr><td>${b.surname}</td><td>${b.unit}</td><td>${b.start} – ${b.end}</td><td>${total} zł</td><td class="paid">${b.paid} zł</td><td class="owed ${owed === 0 ? 'zero' : ''}">${owed} zł</td><td>${statusBadge}</td></tr>`;
+    let statusCell;
+    if (owed === 0) {
+      statusCell = `<span class="status-badge paid">${STRINGS.statusPaidInFull}</span>`;
+    } else {
+      statusCell = `<span class="status-badge due">${STRINGS.statusBalanceDue}</span>`;
+      if (CAN_EDIT) statusCell += ` <button class="btn-mark-paid" onclick="markBookingPaid('${b.id}')">${STRINGS.markAsPaidBtn}</button>`;
+    }
+    html += `<tr><td>${b.surname}</td><td>${b.unit}</td><td>${b.start} – ${b.end}</td><td>${total} zł</td><td class="paid">${b.paid} zł</td><td class="owed ${owed === 0 ? 'zero' : ''}">${owed} zł</td><td>${statusCell}</td></tr>`;
   });
   html += '</table>';
   wrap.innerHTML = `<div class="balance-line"><span>${STRINGS.totalOutstandingLabel}</span><span>${totalOutstanding.toLocaleString()} zł</span></div>` + html;
