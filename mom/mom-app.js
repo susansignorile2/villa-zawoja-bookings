@@ -259,6 +259,16 @@ function recalcBalance() {
   document.getElementById('f_balance').textContent = formatBalanceLine(balance, rawTotal, nights, discount);
 }
 
+function addPayment() {
+  const addInput = document.getElementById('f_addPayment');
+  const amount = parseFloat(addInput.value) || 0;
+  if (amount <= 0) return;
+  const depositInput = document.getElementById('f_deposit');
+  depositInput.value = (parseFloat(depositInput.value) || 0) + amount;
+  addInput.value = '';
+  recalcBalance();
+}
+
 function saveBooking() {
   const unit = document.getElementById('f_unit').value;
   const editId = document.getElementById('f_editId').value;
