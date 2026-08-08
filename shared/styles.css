@@ -38,6 +38,10 @@ body { margin: 0; font-family: var(--font-body); background: var(--bg); color: v
 .role-switch { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--timber); }
 .role-badge { font-weight: 700; font-size: 12.5px; padding: 7px 12px; border-radius: 6px; background: rgba(78,122,140,0.14); color: var(--sea); white-space: nowrap; }
 
+.lang-toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.lang-toggle button { font-family: var(--font-body); font-size: 12px; font-weight: 700; padding: 7px 10px; border: none; background: #fff; color: var(--timber); cursor: pointer; }
+.lang-toggle button.active { background: var(--pine); color: #fff; }
+
 .sync-bar { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--timber); flex-wrap: wrap; }
 .sync-status { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #cabf9f; flex-shrink: 0; }

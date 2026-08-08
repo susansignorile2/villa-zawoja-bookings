@@ -8,21 +8,27 @@
 </head>
 <body>
 <div class="landing">
+  <div class="lang-toggle" id="langToggle" style="display:inline-flex; margin-bottom:20px;">
+    <button data-lang="en" onclick="setLanguage('en')">EN</button>
+    <button data-lang="pl" onclick="setLanguage('pl')">PL</button>
+  </div>
   <h1>Villa Zawoja</h1>
-  <p>Booking calendar for Villa Zawoja, Władysławowo. Choose your link below.</p>
+  <p data-i18n="landingIntro">Booking calendar for Villa Zawoja, Władysławowo. Choose your link below.</p>
   <div class="landing-links">
     <a class="landing-card" href="mom/">
-      <h2>Mom</h2>
-      <p>Create, edit and cancel bookings. Set prices.</p>
+      <h2 data-i18n="landingMomTitle">Mom</h2>
+      <p data-i18n="landingMomDesc">Create, edit and cancel bookings. Set prices.</p>
     </a>
     <a class="landing-card" href="granny/">
-      <h2>Granny</h2>
-      <p>View the calendar and guests only.</p>
+      <h2 data-i18n="landingGrannyTitle">Granny</h2>
+      <p data-i18n="landingGrannyDesc">View the calendar and guests only.</p>
     </a>
   </div>
-  <div class="landing-warning">
+  <div class="landing-warning" data-i18n="landingWarning">
     Bookmark the link you use directly instead of coming back to this page each time. Only share the Mom link with Mom — anyone who signs in on that page can create or change bookings.
   </div>
 </div>
+<script src="shared/strings.js"></script>
+<script>applyStrings(); updateLangToggleUI();</script>
 </body>
 </html>

@@ -21,8 +21,6 @@ const UNIT_GROUPS = [
 ];
 const ALL_UNITS = UNIT_GROUPS.flatMap(g => g.names);
 const SEASON_MONTHS = [5, 6, 7, 8]; // June(5) - Sept(8), zero-indexed
-const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const dowNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 let currentYear = new Date().getFullYear() >= 2020 ? new Date().getFullYear() : 2026;
 let DB = { bookings: [], prices: {}, guestProfiles: {} };
@@ -64,18 +62,6 @@ function statusForBookingOnDate(b, dateStr) {
   return 'available';
 }
 
-/* ============================= i18n ============================= */
-function applyStrings() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (STRINGS[key] != null) el.textContent = STRINGS[key];
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder');
-    if (STRINGS[key] != null) el.setAttribute('placeholder', STRINGS[key]);
-  });
-}
-
 /* ============================= RENDER: CALENDAR ============================= */
 function renderCalendar() {
   document.getElementById('yearLabel').textContent = currentYear;
@@ -96,7 +82,7 @@ function renderCalendar() {
     shell.style.marginBottom = '18px';
     const strip = document.createElement('div');
     strip.className = 'month-strip';
-    strip.innerHTML = `<span>${MONTH_NAMES[m]} ${currentYear}</span>`;
+    strip.innerHTML = `<span>${STRINGS.monthNames[m]} ${currentYear}</span>`;
     const table = document.createElement('table');
     shell.appendChild(strip);
     shell.appendChild(table);
@@ -111,14 +97,14 @@ function buildMonthGrid(table, year, monthIndex) {
 
   let html = "<colgroup><col class='unit-col'>";
   for (let d = 1; d <= numDays; d++) html += "<col>";
-  html += "</colgroup><thead><tr class='grid-header'><th>Unit</th>";
+  html += `</colgroup><thead><tr class='grid-header'><th>${STRINGS.unitColumnHeader}</th>`;
   for (let d = 1; d <= numDays; d++) {
     const dateStr = isoDate(year, monthIndex, d);
     const dObj = new Date(year, monthIndex, d);
     const dw = dObj.getDay();
     const isWeekend = (dw === 0 || dw === 6);
     const isToday = dateStr === today;
-    html += `<th class="${isWeekend ? 'weekend' : ''} ${isToday ? 'today-col' : ''}"><span class="dow">${dowNames[dw]}</span><span class="dnum">${d}</span></th>`;
+    html += `<th class="${isWeekend ? 'weekend' : ''} ${isToday ? 'today-col' : ''}"><span class="dow">${STRINGS.dowNames[dw]}</span><span class="dnum">${d}</span></th>`;
   }
   html += "</tr></thead><tbody>";
 
@@ -270,33 +256,40 @@ function selectGuestByName(name) {
   selectedGuest = name;
   renderGuests();
 }
+function transportLabelFor(value) {
+  if (value === 'Car') return STRINGS.transportOptionCar;
+  if (value === 'Train') return STRINGS.transportOptionTrain;
+  if (value === 'Other') return STRINGS.transportOptionOther;
+  return '—';
+}
+
 function renderProfile(name) {
   const s = guestSummary(name);
   const card = document.getElementById('profileCard');
   const editableBlock = CAN_EDIT ? `
     <div class="profile-edit-field">
-      <label>Transport</label>
+      <label>${STRINGS.transportLabel}</label>
       <select id="pf_transport" onchange="updateGuestField('${name.replace(/'/g, "\\'")}','transport',this.value)">
         <option value="" ${s.transport === '' ? 'selected' : ''}>—</option>
-        <option value="Car" ${s.transport === 'Car' ? 'selected' : ''}>Car</option>
-        <option value="Train" ${s.transport === 'Train' ? 'selected' : ''}>Train</option>
-        <option value="Other" ${s.transport === 'Other' ? 'selected' : ''}>Other</option>
+        <option value="Car" ${s.transport === 'Car' ? 'selected' : ''}>${STRINGS.transportOptionCar}</option>
+        <option value="Train" ${s.transport === 'Train' ? 'selected' : ''}>${STRINGS.transportOptionTrain}</option>
+        <option value="Other" ${s.transport === 'Other' ? 'selected' : ''}>${STRINGS.transportOptionOther}</option>
       </select>
     </div>
     <div class="profile-edit-field">
-      <label>Note</label>
+      <label>${STRINGS.noteLabel}</label>
       <input type="text" id="pf_note" value="${(s.note || '').replace(/"/g, '&quot;')}" onchange="updateGuestField('${name.replace(/'/g, "\\'")}','note',this.value)">
     </div>
   ` : `
-    <div class="profile-row"><span>Transport</span><span>${s.transport || '—'}</span></div>
-    <div class="profile-row"><span>Note</span><span>${s.note || '—'}</span></div>
+    <div class="profile-row"><span>${STRINGS.transportLabel}</span><span>${transportLabelFor(s.transport)}</span></div>
+    <div class="profile-row"><span>${STRINGS.noteLabel}</span><span>${s.note || '—'}</span></div>
   `;
 
   card.innerHTML = `
     <h2>${name}</h2>
-    <div class="meta">${s.stays} booking${s.stays === 1 ? '' : 's'} on record</div>
-    <div class="profile-row"><span>Usual / last unit</span><span>${s.lastUnit}</span></div>
-    <div class="profile-row"><span>Last stay</span><span>${s.lastDates}</span></div>
+    <div class="meta">${formatGuestBookingsCount(s.stays)}</div>
+    <div class="profile-row"><span>${STRINGS.usualUnitLabel}</span><span>${s.lastUnit}</span></div>
+    <div class="profile-row"><span>${STRINGS.lastStayLabel}</span><span>${s.lastDates}</span></div>
     ${editableBlock}
     ${CAN_EDIT ? `<div style="margin-top:20px;"><button class="btn-primary" ${s.lastBooking ? '' : 'disabled'} onclick="newBookingForGuest('${name.replace(/'/g, "\\'")}')">${STRINGS.newBookingForGuest}</button></div>` : ''}
   `;
@@ -329,7 +322,7 @@ function renderPrices() {
 
   const table = document.createElement('table');
   table.className = 'price-table';
-  let html = '<tr><th>Unit</th><th>June</th><th>July</th><th>August</th><th>September</th></tr>';
+  let html = `<tr><th>${STRINGS.unitColumnHeader}</th><th>${STRINGS.monthNames[5]}</th><th>${STRINGS.monthNames[6]}</th><th>${STRINGS.monthNames[7]}</th><th>${STRINGS.monthNames[8]}</th></tr>`;
   ALL_UNITS.forEach(u => {
     const p = DB.prices[currentYear][u] || { 5: 0, 6: 0, 7: 0, 8: 0 };
     html += `<tr><td>${u}</td>`;
@@ -363,7 +356,7 @@ function renderSummary() {
   SEASON_MONTHS.forEach(m => {
     const thisYearTotal = monthTotal(currentYear, m);
     const lastYearTotal = monthTotal(currentYear - 1, m);
-    let compareHtml = `Last year: ${lastYearTotal.toLocaleString()} zł`;
+    let compareHtml = `${STRINGS.lastYearLabel}${lastYearTotal.toLocaleString()} zł`;
     if (lastYearTotal > 0) {
       const pct = Math.round(((thisYearTotal - lastYearTotal) / lastYearTotal) * 100);
       if (pct > 0) compareHtml += ` <span class="up">▲ ${pct}%</span>`;
@@ -371,7 +364,7 @@ function renderSummary() {
     }
     const card = document.createElement('div');
     card.className = 'summary-card';
-    card.innerHTML = `<div class="month">${MONTH_NAMES[m]}</div><div class="amount">${thisYearTotal.toLocaleString()} zł</div><div class="compare">${compareHtml}</div>`;
+    card.innerHTML = `<div class="month">${STRINGS.monthNames[m]}</div><div class="amount">${thisYearTotal.toLocaleString()} zł</div><div class="compare">${compareHtml}</div>`;
     grid.appendChild(card);
   });
 
@@ -381,7 +374,7 @@ function renderSummary() {
     wrap.innerHTML = `<div class="empty-note">${STRINGS.noBookingsYet}${currentYear}.</div>`;
     return;
   }
-  let html = `<table class="deposits-table"><tr><th>Guest</th><th>Unit</th><th>Dates</th><th>Total price</th><th>Paid</th><th>Outstanding</th></tr>`;
+  let html = `<table class="deposits-table"><tr><th>${STRINGS.depositsColGuest}</th><th>${STRINGS.depositsColUnit}</th><th>${STRINGS.depositsColDates}</th><th>${STRINGS.depositsColTotal}</th><th>${STRINGS.depositsColPaid}</th><th>${STRINGS.depositsColOutstanding}</th></tr>`;
   seasonBookings.forEach(b => {
     const nights = Math.round((parseIso(b.end) - parseIso(b.start)) / 86400000);
     const total = b.price * nights;

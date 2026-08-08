@@ -24,7 +24,7 @@ function initGoogleAuth() {
 }
 
 function connectDrive() {
-  if (!tokenClient) { showToast('Still loading Google Sign-In — try again in a moment'); return; }
+  if (!tokenClient) { showToast(STRINGS.gsiLoading); return; }
   setSyncStatus('pending', STRINGS.connecting);
   tokenClient.requestAccessToken({ prompt: 'consent' });
 }
@@ -159,7 +159,7 @@ function openModal(mode, unit, dateStr, bookingId) {
 
   if (mode === 'new') {
     document.getElementById('modalTitle').textContent = STRINGS.modalTitleNew;
-    document.getElementById('modalSub').textContent = `${unit} · starting ${dateStr}`;
+    document.getElementById('modalSub').textContent = fmt(STRINGS.modalSubNew, { unit, date: dateStr });
     document.getElementById('f_start').value = dateStr;
     const endDefault = new Date(parseIso(dateStr)); endDefault.setDate(endDefault.getDate() + 3);
     document.getElementById('f_end').value = isoDate(endDefault.getFullYear(), endDefault.getMonth(), endDefault.getDate());
@@ -213,7 +213,7 @@ function recalcBalance() {
   }
   const total = price * nights;
   const balance = Math.max(0, total - deposit);
-  document.getElementById('f_balance').textContent = `${balance} zł  (total ${total} zł for ${nights} night${nights === 1 ? '' : 's'})`;
+  document.getElementById('f_balance').textContent = formatBalanceLine(balance, total, nights);
 
   const unit = document.getElementById('f_unit').value;
   if (unit && start) checkTurnoverWarning(unit, start, document.getElementById('f_editId').value || null);
@@ -306,8 +306,8 @@ function newBookingForGuest(name) {
   renderCalendar();
 
   openModal('new', s.lastBooking.unit, isoDate(newStart.getFullYear(), newStart.getMonth(), newStart.getDate()), null);
-  document.getElementById('modalTitle').textContent = `New booking for ${name}`;
-  document.getElementById('modalSub').textContent = 'Pre-filled from guest profile — just update the dates and save';
+  document.getElementById('modalTitle').textContent = fmt(STRINGS.modalTitleNewForGuest, { name });
+  document.getElementById('modalSub').textContent = STRINGS.modalSubPrefilled;
   document.getElementById('f_end').value = isoDate(newEnd.getFullYear(), newEnd.getMonth(), newEnd.getDate());
   document.getElementById('f_surname').value = name;
   document.getElementById('f_phone').value = s.lastBooking.phone;
@@ -330,6 +330,7 @@ function savePrices() {
 /* ============================= INIT ============================= */
 (function init() {
   applyStrings();
+  updateLangToggleUI();
   const cached = loadCachedData();
   if (cached && cached.data) DB = cached.data;
   renderAll();

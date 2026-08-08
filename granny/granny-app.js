@@ -22,7 +22,7 @@ function initGoogleAuth() {
 }
 
 function connectDrive() {
-  if (!tokenClient) { showToast('Still loading Google Sign-In — try again in a moment'); return; }
+  if (!tokenClient) { showToast(STRINGS.gsiLoading); return; }
   setSyncStatus(null, STRINGS.connecting);
   tokenClient.requestAccessToken({ prompt: 'consent' });
 }
@@ -114,6 +114,7 @@ function setSyncStatus(state, text) {
 /* ============================= INIT ============================= */
 (function init() {
   applyStrings();
+  updateLangToggleUI();
   const cached = loadCachedData();
   if (cached && cached.data) {
     DB = cached.data;
