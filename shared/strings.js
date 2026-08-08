@@ -73,7 +73,7 @@ const STRINGS_EN = {
   fieldEnd: "End date (checkout day)",
   fieldSurname: "Guest surname",
   fieldPhone: "Phone number",
-  fieldPrice: "Price per night (zł)",
+  fieldRates: "Nightly rate by month (zł)",
   fieldDeposit: "Deposit / amount paid (zł)",
   fieldNote: "Note (optional)",
   outstandingBalance: "Outstanding balance",
@@ -189,7 +189,7 @@ const STRINGS_PL = {
   fieldEnd: "Data wyjazdu (dzień wymeldowania)",
   fieldSurname: "Nazwisko gościa",
   fieldPhone: "Numer telefonu",
-  fieldPrice: "Cena za noc (zł)",
+  fieldRates: "Cena za noc wg miesiąca (zł)",
   fieldDeposit: "Zadatek / kwota wpłacona (zł)",
   fieldNote: "Notatka (opcjonalnie)",
   outstandingBalance: "Pozostało do zapłaty",
@@ -291,10 +291,14 @@ function formatGuestBookingsCount(n) {
     : `${n} ${pluralize(n, ['booking', 'bookings'], [])} on record`;
 }
 
+function formatNightsCount(n) {
+  return `${n} ${pluralize(n, ['night', 'nights'], ['noc', 'noce', 'nocy'])}`;
+}
+
 function formatBalanceLine(balance, total, nights) {
   return CURRENT_LANG === 'pl'
-    ? `${balance} zł  (razem ${total} zł za ${nights} ${pluralize(nights, [], ['noc', 'noce', 'nocy'])})`
-    : `${balance} zł  (total ${total} zł for ${nights} ${pluralize(nights, ['night', 'nights'], [])})`;
+    ? `${balance} zł  (razem ${total} zł za ${formatNightsCount(nights)})`
+    : `${balance} zł  (total ${total} zł for ${formatNightsCount(nights)})`;
 }
 
 /* ============================= APPLY TO DOM ============================= */

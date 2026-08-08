@@ -103,15 +103,16 @@
     <input type="hidden" id="f_unit">
     <input type="hidden" id="f_editId">
     <div class="row-2">
-      <div class="field"><label data-i18n="fieldStart">Start date</label><input type="date" id="f_start" onchange="recalcBalance()"></div>
-      <div class="field"><label data-i18n="fieldEnd">End date (checkout day)</label><input type="date" id="f_end" onchange="recalcBalance()"></div>
+      <div class="field"><label data-i18n="fieldStart">Start date</label><input type="date" id="f_start" onchange="onDatesChanged()"></div>
+      <div class="field"><label data-i18n="fieldEnd">End date (checkout day)</label><input type="date" id="f_end" onchange="onDatesChanged()"></div>
     </div>
     <div class="field"><label data-i18n="fieldSurname">Guest surname</label><input type="text" id="f_surname"></div>
     <div class="field"><label data-i18n="fieldPhone">Phone number</label><input type="text" id="f_phone"></div>
-    <div class="row-2">
-      <div class="field"><label data-i18n="fieldPrice">Price per night (zł)</label><input type="number" id="f_price" onchange="recalcBalance()"></div>
-      <div class="field"><label data-i18n="fieldDeposit">Deposit / amount paid (zł)</label><input type="number" id="f_deposit" onchange="recalcBalance()"></div>
+    <div class="field">
+      <label data-i18n="fieldRates">Nightly rate by month (zł)</label>
+      <div id="ratesContainer" class="rates-container"></div>
     </div>
+    <div class="field"><label data-i18n="fieldDeposit">Deposit / amount paid (zł)</label><input type="number" id="f_deposit" onchange="recalcBalance()"></div>
     <div class="field"><label data-i18n="fieldNote">Note (optional)</label><textarea rows="2" id="f_note"></textarea></div>
     <div class="balance-line"><span data-i18n="outstandingBalance">Outstanding balance</span><span id="f_balance">0 zł</span></div>
     <div class="modal-actions">

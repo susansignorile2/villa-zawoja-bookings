@@ -34,6 +34,39 @@ function todayIso() { const t = new Date(); return isoDate(t.getFullYear(), t.ge
 function parseIso(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
 function uid() { return 'b_' + Math.random().toString(36).slice(2, 10); }
 
+/* ============================= MULTI-MONTH PRICING =============================
+   A stay that crosses a calendar-month boundary (e.g. 20 Aug – 3 Sep) is
+   priced per month, since each month can have its own season rate and
+   either rate can be individually discounted for a specific guest.
+   booking.rates is an array of {month:"YYYY-MM", price} covering every
+   month the stay touches. Bookings saved before this feature only have a
+   flat booking.price — rateForBookingMonth() falls back to that so old
+   bookings still total correctly and keep their original price if reopened. */
+function nightsByMonth(start, end) {
+  const map = {};
+  let d = parseIso(start);
+  const endD = parseIso(end);
+  while (d < endD) {
+    const ym = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+    map[ym] = (map[ym] || 0) + 1;
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+  }
+  return map;
+}
+
+function rateForBookingMonth(booking, ym) {
+  if (booking.rates) {
+    const entry = booking.rates.find(r => r.month === ym);
+    if (entry) return entry.price;
+  }
+  return booking.price != null ? booking.price : 0;
+}
+
+function bookingTotal(booking) {
+  const nightsMap = nightsByMonth(booking.start, booking.end);
+  return Object.keys(nightsMap).reduce((sum, ym) => sum + rateForBookingMonth(booking, ym) * nightsMap[ym], 0);
+}
+
 /* ============================= LOCAL CACHE (offline fallback only) =============================
    This is NOT the source of truth — Google Drive is. It's a fallback so the
    app still shows something useful if Drive is unreachable, per the
@@ -341,12 +374,11 @@ function renderPrices() {
 
 /* ============================= MONEY SUMMARY ============================= */
 function monthTotal(year, monthIndex) {
-  return DB.bookings.filter(b => {
-    const s = parseIso(b.start);
-    return s.getFullYear() === year && s.getMonth() === monthIndex;
-  }).reduce((sum, b) => {
-    const nights = Math.round((parseIso(b.end) - parseIso(b.start)) / 86400000);
-    return sum + (b.price * nights);
+  const ym = `${year}-${pad(monthIndex + 1)}`;
+  return DB.bookings.reduce((sum, b) => {
+    const nightsInThisMonth = nightsByMonth(b.start, b.end)[ym];
+    if (!nightsInThisMonth) return sum;
+    return sum + rateForBookingMonth(b, ym) * nightsInThisMonth;
   }, 0);
 }
 function renderSummary() {
@@ -376,8 +408,7 @@ function renderSummary() {
   }
   let html = `<table class="deposits-table"><tr><th>${STRINGS.depositsColGuest}</th><th>${STRINGS.depositsColUnit}</th><th>${STRINGS.depositsColDates}</th><th>${STRINGS.depositsColTotal}</th><th>${STRINGS.depositsColPaid}</th><th>${STRINGS.depositsColOutstanding}</th></tr>`;
   seasonBookings.forEach(b => {
-    const nights = Math.round((parseIso(b.end) - parseIso(b.start)) / 86400000);
-    const total = b.price * nights;
+    const total = bookingTotal(b);
     const owed = Math.max(0, total - b.paid);
     html += `<tr><td>${b.surname}</td><td>${b.unit}</td><td>${b.start} – ${b.end}</td><td>${total} zł</td><td class="paid">${b.paid} zł</td><td class="owed ${owed === 0 ? 'zero' : ''}">${owed} zł</td></tr>`;
   });
