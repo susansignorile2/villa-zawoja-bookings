@@ -168,6 +168,7 @@ function openModal(mode, unit, dateStr, bookingId) {
     document.getElementById('f_phone').value = '';
     document.getElementById('f_note').value = '';
     document.getElementById('f_deposit').value = 0;
+    document.getElementById('f_discount').value = 0;
     document.getElementById('cancelBookingBtn').style.display = 'none';
     renderRateRows(unit, dateStr, endDefaultIso, null);
   } else {
@@ -183,6 +184,7 @@ function openModal(mode, unit, dateStr, bookingId) {
     document.getElementById('f_phone').value = b.phone;
     document.getElementById('f_note').value = b.note || '';
     document.getElementById('f_deposit').value = b.paid;
+    document.getElementById('f_discount').value = b.discount || 0;
     document.getElementById('cancelBookingBtn').style.display = 'inline-block';
     const existingRates = {};
     if (b.rates) {
@@ -238,21 +240,23 @@ function checkTurnoverWarning(unit, startDate, ignoreId) {
 
 function recalcBalance() {
   const deposit = parseFloat(document.getElementById('f_deposit').value) || 0;
+  const discount = parseFloat(document.getElementById('f_discount').value) || 0;
   const start = document.getElementById('f_start').value;
   const end = document.getElementById('f_end').value;
   const nightsMap = (start && end && parseIso(end) > parseIso(start)) ? nightsByMonth(start, end) : {};
 
-  let total = 0, nights = 0;
+  let rawTotal = 0, nights = 0;
   document.querySelectorAll('.rate-input').forEach(inp => {
     const ym = inp.dataset.month;
     const rate = parseFloat(inp.value) || 0;
     const n = nightsMap[ym] || 0;
-    total += rate * n;
+    rawTotal += rate * n;
     nights += n;
   });
 
+  const total = Math.max(0, rawTotal - discount);
   const balance = Math.max(0, total - deposit);
-  document.getElementById('f_balance').textContent = formatBalanceLine(balance, total, nights);
+  document.getElementById('f_balance').textContent = formatBalanceLine(balance, rawTotal, nights, discount);
 }
 
 function saveBooking() {
@@ -263,6 +267,7 @@ function saveBooking() {
   const surname = document.getElementById('f_surname').value.trim();
   const phone = document.getElementById('f_phone').value.trim();
   const paid = parseFloat(document.getElementById('f_deposit').value) || 0;
+  const discount = parseFloat(document.getElementById('f_discount').value) || 0;
   const note = document.getElementById('f_note').value.trim();
   const rates = Array.from(document.querySelectorAll('.rate-input')).map(inp => ({
     month: inp.dataset.month,
@@ -297,9 +302,9 @@ function saveBooking() {
   if (editId) {
     const b = DB.bookings.find(x => x.id === editId);
     delete b.price; // upgrade legacy flat-price bookings to per-month rates on save
-    Object.assign(b, { start, end, surname, phone, paid, note, rates });
+    Object.assign(b, { start, end, surname, phone, paid, discount, note, rates });
   } else {
-    DB.bookings.push({ id: uid(), unit, start, end, surname, phone, paid, note, rates });
+    DB.bookings.push({ id: uid(), unit, start, end, surname, phone, paid, discount, note, rates });
   }
 
   if (!DB.guestProfiles[surname]) DB.guestProfiles[surname] = { transport: '', note: '' };

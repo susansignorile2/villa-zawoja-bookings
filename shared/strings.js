@@ -47,6 +47,10 @@ const STRINGS_EN = {
   depositsColTotal: "Total price",
   depositsColPaid: "Paid",
   depositsColOutstanding: "Outstanding",
+  depositsColStatus: "Status",
+  statusPaidInFull: "Paid in full",
+  statusBalanceDue: "Balance due",
+  totalOutstandingLabel: "Total outstanding this season",
 
   pricesHeading: "Season Prices — ",
   savePricesBtn: "Save prices",
@@ -74,6 +78,7 @@ const STRINGS_EN = {
   fieldSurname: "Guest surname",
   fieldPhone: "Phone number",
   fieldRates: "Nightly rate by month (zł)",
+  fieldDiscount: "Discount (zł)",
   fieldDeposit: "Deposit / amount paid (zł)",
   fieldNote: "Note (optional)",
   outstandingBalance: "Outstanding balance",
@@ -163,6 +168,10 @@ const STRINGS_PL = {
   depositsColTotal: "Cena całkowita",
   depositsColPaid: "Wpłacono",
   depositsColOutstanding: "Do zapłaty",
+  depositsColStatus: "Status płatności",
+  statusPaidInFull: "Zapłacono w całości",
+  statusBalanceDue: "Do dopłaty",
+  totalOutstandingLabel: "Łącznie do zapłaty w tym sezonie",
 
   pricesHeading: "Ceny sezonowe — ",
   savePricesBtn: "Zapisz ceny",
@@ -190,6 +199,7 @@ const STRINGS_PL = {
   fieldSurname: "Nazwisko gościa",
   fieldPhone: "Numer telefonu",
   fieldRates: "Cena za noc wg miesiąca (zł)",
+  fieldDiscount: "Rabat (zł)",
   fieldDeposit: "Zadatek / kwota wpłacona (zł)",
   fieldNote: "Notatka (opcjonalnie)",
   outstandingBalance: "Pozostało do zapłaty",
@@ -295,10 +305,14 @@ function formatNightsCount(n) {
   return `${n} ${pluralize(n, ['night', 'nights'], ['noc', 'noce', 'nocy'])}`;
 }
 
-function formatBalanceLine(balance, total, nights) {
-  return CURRENT_LANG === 'pl'
-    ? `${balance} zł  (razem ${total} zł za ${formatNightsCount(nights)})`
-    : `${balance} zł  (total ${total} zł for ${formatNightsCount(nights)})`;
+function formatBalanceLine(balance, rawTotal, nights, discount) {
+  const hasDiscount = discount > 0;
+  if (CURRENT_LANG === 'pl') {
+    const totalPart = hasDiscount ? `razem ${rawTotal} zł − rabat ${discount} zł` : `razem ${rawTotal} zł`;
+    return `${balance} zł  (${totalPart}, za ${formatNightsCount(nights)})`;
+  }
+  const totalPart = hasDiscount ? `total ${rawTotal} zł − ${discount} zł discount` : `total ${rawTotal} zł`;
+  return `${balance} zł  (${totalPart} for ${formatNightsCount(nights)})`;
 }
 
 /* ============================= APPLY TO DOM ============================= */

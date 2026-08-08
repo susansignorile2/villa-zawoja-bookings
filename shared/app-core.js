@@ -62,9 +62,30 @@ function rateForBookingMonth(booking, ym) {
   return booking.price != null ? booking.price : 0;
 }
 
-function bookingTotal(booking) {
+/* A flat booking.discount (zł off the whole stay) is spread across the
+   months it touches in proportion to each month's share of the raw
+   total, so a discount on a stay that crosses a month boundary doesn't
+   get misattributed to a single month in the Money Summary. */
+function bookingMonthlyTotals(booking) {
   const nightsMap = nightsByMonth(booking.start, booking.end);
-  return Object.keys(nightsMap).reduce((sum, ym) => sum + rateForBookingMonth(booking, ym) * nightsMap[ym], 0);
+  const rawByMonth = {};
+  let rawTotal = 0;
+  Object.keys(nightsMap).forEach(ym => {
+    const amount = rateForBookingMonth(booking, ym) * nightsMap[ym];
+    rawByMonth[ym] = amount;
+    rawTotal += amount;
+  });
+  const discount = booking.discount || 0;
+  if (discount <= 0 || rawTotal <= 0) return rawByMonth;
+  const adjusted = {};
+  Object.keys(rawByMonth).forEach(ym => {
+    adjusted[ym] = Math.round(rawByMonth[ym] - discount * (rawByMonth[ym] / rawTotal));
+  });
+  return adjusted;
+}
+
+function bookingTotal(booking) {
+  return Object.values(bookingMonthlyTotals(booking)).reduce((a, b) => a + b, 0);
 }
 
 /* ============================= LOCAL CACHE (offline fallback only) =============================
@@ -375,11 +396,7 @@ function renderPrices() {
 /* ============================= MONEY SUMMARY ============================= */
 function monthTotal(year, monthIndex) {
   const ym = `${year}-${pad(monthIndex + 1)}`;
-  return DB.bookings.reduce((sum, b) => {
-    const nightsInThisMonth = nightsByMonth(b.start, b.end)[ym];
-    if (!nightsInThisMonth) return sum;
-    return sum + rateForBookingMonth(b, ym) * nightsInThisMonth;
-  }, 0);
+  return DB.bookings.reduce((sum, b) => sum + (bookingMonthlyTotals(b)[ym] || 0), 0);
 }
 function renderSummary() {
   document.getElementById('summaryYearLabel').textContent = currentYear;
@@ -406,14 +423,19 @@ function renderSummary() {
     wrap.innerHTML = `<div class="empty-note">${STRINGS.noBookingsYet}${currentYear}.</div>`;
     return;
   }
-  let html = `<table class="deposits-table"><tr><th>${STRINGS.depositsColGuest}</th><th>${STRINGS.depositsColUnit}</th><th>${STRINGS.depositsColDates}</th><th>${STRINGS.depositsColTotal}</th><th>${STRINGS.depositsColPaid}</th><th>${STRINGS.depositsColOutstanding}</th></tr>`;
+  let totalOutstanding = 0;
+  let html = `<table class="deposits-table"><tr><th>${STRINGS.depositsColGuest}</th><th>${STRINGS.depositsColUnit}</th><th>${STRINGS.depositsColDates}</th><th>${STRINGS.depositsColTotal}</th><th>${STRINGS.depositsColPaid}</th><th>${STRINGS.depositsColOutstanding}</th><th>${STRINGS.depositsColStatus}</th></tr>`;
   seasonBookings.forEach(b => {
     const total = bookingTotal(b);
     const owed = Math.max(0, total - b.paid);
-    html += `<tr><td>${b.surname}</td><td>${b.unit}</td><td>${b.start} – ${b.end}</td><td>${total} zł</td><td class="paid">${b.paid} zł</td><td class="owed ${owed === 0 ? 'zero' : ''}">${owed} zł</td></tr>`;
+    totalOutstanding += owed;
+    const statusBadge = owed === 0
+      ? `<span class="status-badge paid">${STRINGS.statusPaidInFull}</span>`
+      : `<span class="status-badge due">${STRINGS.statusBalanceDue}</span>`;
+    html += `<tr><td>${b.surname}</td><td>${b.unit}</td><td>${b.start} – ${b.end}</td><td>${total} zł</td><td class="paid">${b.paid} zł</td><td class="owed ${owed === 0 ? 'zero' : ''}">${owed} zł</td><td>${statusBadge}</td></tr>`;
   });
   html += '</table>';
-  wrap.innerHTML = html;
+  wrap.innerHTML = `<div class="balance-line"><span>${STRINGS.totalOutstandingLabel}</span><span>${totalOutstanding.toLocaleString()} zł</span></div>` + html;
 }
 
 /* ============================= NAVIGATION ============================= */
