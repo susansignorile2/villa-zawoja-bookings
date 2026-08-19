@@ -191,7 +191,7 @@ function buildMonthGrid(table, year, monthIndex) {
           const inSt = statusForBookingOnDate(turnover.in, turnover.in.start);
           const colorVar = { reserved: "var(--status-reserved)", deposit: "var(--status-deposit)", staying: "var(--status-staying)" };
           const bg = `linear-gradient(135deg, ${colorVar[outSt] || '#fff'} 0%, ${colorVar[outSt] || '#fff'} 49%, ${colorVar[inSt] || '#fff'} 51%, ${colorVar[inSt] || '#fff'} 100%)`;
-          html += `<td class="split-cell" style="background:${bg}" data-edit-id="${turnover.out.id}"><span class="out-name">${turnover.out.surname}</span><span class="in-name">${turnover.in.surname}</span></td>`;
+          html += `<td class="split-cell" style="background:${bg}" data-edit-id="${turnover.out.id}"></td>`;
           d += 1;
           continue;
         }
@@ -214,7 +214,13 @@ function buildMonthGrid(table, year, monthIndex) {
           const runEndDate = isoDate(year, monthIndex, runEnd);
           const dashIn = (runStartDate === booking.start) ? 'dash-in' : '';
           const dashOut = (runEndDate === booking.end) ? 'dash-out' : '';
-          html += `<td colspan="${span}" class="status-${st} ${dashIn} ${dashOut}" data-edit-id="${booking.id}"><span class="surname-label-inline">${booking.surname}</span></td>`;
+          // A merged multi-day cell is one <td>, so normal table borders can't show day
+          // boundaries inside it — draw them as a faint repeating line instead, spaced to
+          // exactly one column width (100% / span) so each line lands on a day boundary.
+          const dayLines = span > 1
+            ? ` style="background-image: repeating-linear-gradient(to right, rgba(0,0,0,0.15) 0, rgba(0,0,0,0.15) 1px, transparent 1px, transparent ${(100 / span).toFixed(4)}%);"`
+            : '';
+          html += `<td colspan="${span}" class="status-${st} ${dashIn} ${dashOut}"${dayLines} data-edit-id="${booking.id}"><span class="surname-label-inline">${booking.surname}</span></td>`;
           d = runEnd + 1;
           continue;
         }

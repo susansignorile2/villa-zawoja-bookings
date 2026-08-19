@@ -82,9 +82,9 @@ th, td { border: 1px solid rgba(63,74,60,0.08); padding: 0; text-align: center; 
 .unit-group-label td { font-family: var(--font-display); font-size: 12px; font-weight: 600; text-align: left; padding: 7px 12px !important; border: none; letter-spacing: 0.03em; text-transform: uppercase; color: var(--timber); background: rgba(107,86,68,0.06); }
 .unit-label-cell { font-weight: 600; font-size: 12px; text-align: left; padding: 6px 12px !important; white-space: nowrap; background: rgba(255,255,255,0.5); }
 
-.status-reserved { background: var(--status-reserved); cursor: pointer; }
-.status-deposit { background: var(--status-deposit); color: #fff; cursor: pointer; }
-.status-staying { background: var(--status-staying); color: #fff; cursor: pointer; }
+.status-reserved { background: var(--status-reserved); color: var(--pine); cursor: pointer; }
+.status-deposit { background: var(--status-deposit); color: var(--pine); cursor: pointer; }
+.status-staying { background: var(--status-staying); color: var(--pine); cursor: pointer; }
 td.status-available:hover { background: #f0ebdd; cursor: pointer; }
 td.status-available.locked:hover { background: transparent; cursor: default; }
 
@@ -95,10 +95,7 @@ td.status-available.locked:hover { background: transparent; cursor: default; }
 .surname-label { position: absolute; top: 50%; left: 4px; transform: translateY(-50%); font-size: 10px; font-weight: 700; white-space: nowrap; z-index: 2; pointer-events: none; max-width: 95%; overflow: hidden; text-overflow: ellipsis; }
 .surname-label-inline { font-size: 10.5px; font-weight: 700; display: block; text-align: left; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.split-cell { cursor: pointer; position: relative; }
-.split-cell .out-name, .split-cell .in-name { position: absolute; font-size: 7.5px; font-weight: 700; color: #fff; }
-.split-cell .out-name { top: 3px; left: 3px; }
-.split-cell .in-name { bottom: 3px; right: 3px; color: #4a3a18; }
+.split-cell { cursor: pointer; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font-size: 13px; color: var(--timber); }
 .legend-item { display: flex; align-items: center; gap: 7px; }
